@@ -141,13 +141,11 @@ export default {
 
     // Load a MIDI file
     Player.loadArrayBuffer(data);
-    console.log(data);
     Player.on("midiEvent", function(event) {
       // Do something when a MIDI event is fired.
       // (this is the same as passing a function to MidiPlayer.Player() when instantiating.
 
       if (event.noteName || event.velocity) {
-        console.log("gogogogog");
         const pitch = event.noteName.replace(/([0-9]|[-])/g, "");
 
         const rgb = info.noteColors[pitch];
@@ -155,14 +153,14 @@ export default {
         const rgba = `${rgb.join(", ")}, 0.${alpha}`;
         const el = document.getElementById(`note-number-${event.noteNumber}`);
 
-        el.style.backgroundColor = `rgba(${rgba})`;
+        if (event.name === "Note on") {
+          el.style.backgroundColor = `rgba(${rgba})`;
+        }
 
-        setTimeout(() => {
+        if (event.name === "Note off") {
           el.style.backgroundColor = "white";
-        }, (60000 / 120) * event.delta);
+        }
 
-        // eslint-disable-next-line
-        console.log(Player);
         // [note on] set color to assigned note color with alpha equal to velocity
       }
     });
@@ -181,6 +179,7 @@ export default {
   color: #2c3e50;
   margin-top: 60px;
   display: flex;
+  flex-direction: column;
   width: 900px;
   justify-content: center;
   align-content: center;
@@ -194,7 +193,6 @@ export default {
 
 .container-flex {
   display: flex;
-  flex-direction: column;
   flex-wrap: wrap;
 }
 </style>
