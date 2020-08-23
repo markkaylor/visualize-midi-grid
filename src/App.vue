@@ -19,8 +19,6 @@ import info from "@/info.json";
 export default {
   name: "App",
   computed: {
-    // octave -1- 9
-    // note 0 - 119
     notes() {
       return new Array(127);
     },
