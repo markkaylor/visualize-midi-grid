@@ -3,112 +3,10 @@
     <div class="container-flex">
       <div
         class="note-item"
-        v-for="note in notes.slice(0, 12)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(12, 24)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(24, 36)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(36, 48)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(48, 60)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(60, 72)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(72, 84)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(84, 96)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(96, 108)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(108, 120)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
-    </div>
-    <div class="container-flex">
-      <div
-        class="note-item"
-        v-for="note in notes.slice(120, 128)"
-        :key="note"
-        :id="`note-number-${note}`"
-      >
-        {{ note }}
-      </div>
+        v-for="(note, index) in notes.sort(() => Math.random() - 0.5)"
+        :key="`${note}-${index}`"
+        :id="`note-number-${index}`"
+      />
     </div>
   </div>
 </template>
@@ -124,27 +22,17 @@ export default {
     // octave -1- 9
     // note 0 - 119
     notes() {
-      let notes = [];
-      for (let i = 0; i <= 127; i++) {
-        notes.push(i);
-      }
-
-      return notes;
+      return new Array(127);
     },
   },
   async mounted() {
     const { data } = await axios.get("http://localhost:8080/midi-raw.mid", {
       responseType: "arraybuffer",
     });
-    // Initialize player and register event handler
     const Player = new MidiPlayer.Player();
-
-    // Load a MIDI file
     Player.loadArrayBuffer(data);
+    Player.play();
     Player.on("midiEvent", function(event) {
-      // Do something when a MIDI event is fired.
-      // (this is the same as passing a function to MidiPlayer.Player() when instantiating.
-
       if (event.noteName || event.velocity) {
         const pitch = event.noteName.replace(/([0-9]|[-])/g, "");
 
@@ -160,12 +48,27 @@ export default {
         if (event.name === "Note off") {
           el.style.backgroundColor = "white";
         }
-
-        // [note on] set color to assigned note color with alpha equal to velocity
       }
     });
+  },
+  methods: {
+    drawPainting(Player) {
+      const events = Player.getEvents();
+      const eventList = events
+        .flatMap((e) => e)
+        .filter((e) => e.name === "Note on");
+      for (const event of eventList) {
+        if (event.name === "Note on") {
+          const pitch = event.noteName.replace(/([0-9]|[-])/g, "");
+          const rgb = info.noteColors[pitch];
+          const alpha = event.velocity;
+          const rgba = `${rgb.join(", ")}, 0.${alpha}`;
+          const el = document.getElementById(`note-number-${event.noteNumber}`);
 
-    Player.play();
+          el.style.backgroundColor = `rgba(${rgba})`;
+        }
+      }
+    },
   },
 };
 </script>
@@ -183,7 +86,8 @@ export default {
   width: 900px;
   justify-content: center;
   align-content: center;
-  margin: 5rem auto;
+  margin: 0 auto;
+  height: 100vh;
 }
 
 .note-item {
