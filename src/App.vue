@@ -1,12 +1,12 @@
 <template>
   <div id="app">
-    <div class="container-flex">
+    <div v-for="(row, i) in notes" :key="i" class="container-flex">
       <div
         class="note-item"
-        v-for="(note, index) in notes.sort(() => Math.random() - 0.5)"
-        :key="`${note}-${index}`"
-        :id="`note-number-${index}`"
-      />
+        v-for="note in row"
+        :key="note"
+        :id="`note-number-${note}`"
+      ></div>
     </div>
   </div>
 </template>
@@ -20,7 +20,11 @@ export default {
   name: "App",
   computed: {
     notes() {
-      return new Array(127);
+      let notes = [];
+      for (let i = 0; i <= 127; i++) {
+        notes.push(i);
+      }
+      return this.chunkArray(notes, 12).reverse();
     },
   },
   async mounted() {
@@ -28,10 +32,13 @@ export default {
       responseType: "arraybuffer",
     });
     const Player = new MidiPlayer.Player();
+    // eslint-disable-next-line
     Player.loadArrayBuffer(data);
-    Player.play();
+    // Player.play();
+    this.drawPainting(Player);
     Player.on("midiEvent", function(event) {
       if (event.noteName || event.velocity) {
+        console.log("go");
         const pitch = event.noteName.replace(/([0-9]|[-])/g, "");
 
         const rgb = info.noteColors[pitch];
@@ -67,6 +74,15 @@ export default {
         }
       }
     },
+    chunkArray(arr, chunkCount) {
+      const chunks = [];
+      while (arr.length) {
+        const chunk = arr.slice(0, chunkCount);
+        chunks.push(chunk);
+        arr = arr.slice(chunkCount);
+      }
+      return chunks;
+    },
   },
 };
 </script>
@@ -81,10 +97,8 @@ export default {
   margin-top: 60px;
   display: flex;
   flex-direction: column;
-  width: 900px;
-  justify-content: center;
-  align-content: center;
-  margin: 0 auto;
+  width: 500px;
+  margin: 10rem auto;
   height: 100vh;
 }
 
@@ -95,6 +109,5 @@ export default {
 
 .container-flex {
   display: flex;
-  flex-wrap: wrap;
 }
 </style>
