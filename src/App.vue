@@ -34,8 +34,8 @@ export default {
     const Player = new MidiPlayer.Player();
     // eslint-disable-next-line
     Player.loadArrayBuffer(data);
-    // Player.play();
-    this.drawPainting(Player);
+    Player.play();
+    // this.drawPainting(Player);
     Player.on("midiEvent", function(event) {
       if (event.noteName || event.velocity) {
         console.log("go");
