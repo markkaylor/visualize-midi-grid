@@ -1,5 +1,3 @@
-# midi-d3
-
 ## Project setup
 ```
 yarn install
